@@ -1,0 +1,15 @@
+name: Docker image CI
+
+on: push
+
+jobs:
+    build_and_publish:
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v4
+            - name: Build and Push the image
+              run: |
+                  echo "${{ secrets.GH_TOKEN }}" | docker login ghcr.io -u davidyannick86 --password-stdin
+                  docker build . --tag ghcr.io/davidyannick86/mcp-tailscale:latest
+                  docker push ghcr.io/davidyannick86/mcp-tailscale:latest

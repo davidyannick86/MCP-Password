@@ -1,0 +1,10 @@
+services:
+  password-mcp:
+    build: .
+    container_name: password-mcp
+    ports:
+      - "8004:8000"
+    restart: unless-stopped
+    # Environment variables can be added here if needed in future
+    # environment:
+    #   - SOME_VAR=value
