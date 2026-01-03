@@ -1,15 +1,56 @@
 name: Docker image CI
 
-on: push
+on:
+    push:
+        branches:
+            - main
+    pull_request:
+        branches:
+            - main
+
+concurrency:
+    group: docker-${{ github.ref }}
+    cancel-in-progress: true
+
+permissions:
+    contents: read
+    packages: write
+
+env:
+    REGISTRY: ghcr.io
+    IMAGE: ghcr.io/davidyannick86/mcp-tailscale
+    BASE_VERSION: "0.1"
 
 jobs:
     build_and_publish:
         runs-on: ubuntu-latest
 
         steps:
-            - uses: actions/checkout@v4
-            - name: Build and Push the image
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
+
+            - name: Log in to GHCR
+              uses: docker/login-action@v3
+              with:
+                  registry: ${{ env.REGISTRY }}
+                  username: davidyannick86
+                  password: ${{ secrets.GH_TOKEN }}
+
+            - name: Compute version tag
+              id: version
               run: |
-                  echo "${{ secrets.GH_TOKEN }}" | docker login ghcr.io -u davidyannick86 --password-stdin
-                  docker build . --tag ghcr.io/davidyannick86/mcp-password:latest
-                  docker push ghcr.io/davidyannick86/mcp-password:latest
+                  echo "tag=${BASE_VERSION}.${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
+
+            - name: Build and push
+              uses: docker/build-push-action@v6
+              with:
+                  context: .
+                  push: ${{ github.event_name != 'pull_request' }}
+                  tags: |
+                      ${{ env.IMAGE }}:latest
+                      ${{ env.IMAGE }}:${{ steps.version.outputs.tag }}
+                  cache-from: type=gha
+                  cache-to: type=gha,mode=max
