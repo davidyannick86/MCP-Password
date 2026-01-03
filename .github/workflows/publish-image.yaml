@@ -18,7 +18,7 @@ permissions:
 
 env:
     REGISTRY: ghcr.io
-    IMAGE: ghcr.io/davidyannick86/mcp-tailscale
+    IMAGE: ghcr.io/davidyannick86/mcp-password
     BASE_VERSION: "0.1"
 
 jobs:
