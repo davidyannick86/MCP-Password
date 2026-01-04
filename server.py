@@ -1,6 +1,7 @@
 import secrets
 import string
 import random
+import base64
 from typing import Optional
 from mcp.server.fastmcp import FastMCP
 import uvicorn
@@ -26,6 +27,7 @@ def generate_random_password(
     use_digits: bool = True,
     use_symbols: bool = True,
     use_emojis: bool = False,
+    encode_base64: bool = False,
 ) -> str:
     """
     Generate a secure random password.
@@ -36,6 +38,7 @@ def generate_random_password(
         use_digits: Whether to include digits (default: True).
         use_symbols: Whether to include symbols (default: True).
         use_emojis: Whether to include emojis (default: False).
+        encode_base64: Whether to encode the generated password in base64 (default: False).
     """
     alphabet = list(string.ascii_lowercase)
     password_chars = []
@@ -64,6 +67,9 @@ def generate_random_password(
     # Shuffle to avoid predictable patterns (e.g. first char always lowercase)
     secrets.SystemRandom().shuffle(password_chars)
     password = "".join(password_chars)
+
+    if encode_base64:
+        password = base64.b64encode(password.encode()).decode()
     
     # Evaluate strength
     result = zxcvbn(password)
@@ -82,6 +88,7 @@ def generate_memorable_password(
     separator: str = "-",
     use_upper: bool = True,
     use_digits: bool = True,
+    encode_base64: bool = False,
 ) -> str:
     """
     Generate a memorable password based on a passphrase of random words.
@@ -91,6 +98,7 @@ def generate_memorable_password(
         separator: Separator between words (default: "-").
         use_upper: Capitalize the first letter of each word (default: True).
         use_digits: Append a random digit to each word (default: True).
+        encode_base64: Whether to encode the generated password in base64 (default: False).
     """
     selected_words = [secrets.choice(WORDLIST) for _ in range(words)]
     
@@ -103,6 +111,9 @@ def generate_memorable_password(
         final_words.append(word)
 
     password = separator.join(final_words)
+
+    if encode_base64:
+        password = base64.b64encode(password.encode()).decode()
 
     # Evaluate strength
     result = zxcvbn(password)
